@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>L'Odyssée de l'Alphabet</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>
+
+    <div class="app-container">
+        <!-- HEADER / NAVIGATION -->
+        <header id="top-bar" class="hidden">
+            <div class="mascot">👩‍🚀 Astro-Sacha</div>
+            <div class="stars-counter">⭐ <span id="star-count">0</span></div>
+            <button id="btn-home" class="btn-icon" aria-label="Accueil">🏠</button>
+        </header>
+
+        <!-- SCREEN: HOME -->
+        <section id="screen-home" class="screen active">
+            <div class="glass-card home-card">
+                <h1>L'Odyssée de Sacha</h1>
+                <p class="subtitle">Prêt à voyager dans les étoiles ?</p>
+                <div class="mascot-big">🚀</div>
+                <button id="btn-start" class="btn-primary">Commencer le voyage</button>
+            </div>
+        </section>
+
+        <!-- SCREEN: PHASE 1 (DISCOVER) -->
+        <section id="screen-phase1" class="screen">
+            <div class="instruction">Écoute bien !</div>
+            <div class="glass-card big-letter-card">
+                <div id="discover-letter" class="hero-letter">A</div>
+                <div id="discover-icon" class="hero-icon">🧑‍🚀</div>
+            </div>
+            <button id="btn-listen" class="btn-secondary">🔊 Écouter</button>
+            <button id="btn-next-phase1" class="btn-primary mt-4 hidden">Suivant ➡️</button>
+        </section>
+
+        <!-- SCREEN: PHASE 2 (IDENTIFICATION) -->
+        <section id="screen-phase2" class="screen">
+            <div class="instruction" id="instruction-phase2">Trouve la lettre <span class="target-letter">A</span> !</div>
+            <div class="space-field" id="asteroid-container">
+                <!-- Astéroïdes générés par JS -->
+            </div>
+        </section>
+
+        <!-- SCREEN: PHASE 3 (TRACE) -->
+        <section id="screen-phase3" class="screen">
+            <div class="instruction">Trace magique ! Utilise ton doigt.</div>
+            <div class="canvas-container">
+                <canvas id="drawing-canvas" width="300" height="400"></canvas>
+            </div>
+            <button id="btn-finish" class="btn-primary mt-4 hidden">Terminer la mission ✨</button>
+        </section>
+
+        <!-- SCREEN: END/REWARD -->
+        <section id="screen-reward" class="screen">
+            <div class="glass-card home-card">
+                <h1>Bravo Sacha !</h1>
+                <p>Tu as gagné une étoile brillante !</p>
+                <div class="star-burst">🌟</div>
+                <button id="btn-replay" class="btn-primary">Lettre suivante 🚀</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- CANVAS PARTICLES (Confetti/Stars) -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <script src="script.js"></script>
+</body>
+</html>
