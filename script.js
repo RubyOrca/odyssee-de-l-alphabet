@@ -362,53 +362,125 @@ btnNextPhase1.addEventListener('click', () => {
 });
 
 // ==========================================
-// PHASE 2 : IDENTIFICATION (Astéroïdes)
+// PHASE 2 : IDENTIFICATION — Astéroïdes mobiles
 // ==========================================
+let phase2Running = false;
+const ASTEROID_SIZE = 85;
+const TOTAL_ASTEROIDS = 10;
+const TARGET_COUNT = 3; // nb d'occurrences de la bonne lettre
+
 function startPhase2() {
     const current = levelData[currentLevel];
     showScreen('phase2');
 
-    // Mettre à jour le texte affiché avec la lettre courante
+    // Instruction
     const instrEl = document.getElementById('instruction-phase2');
-    if (instrEl) instrEl.innerHTML = `Trouve la lettre <span class="target-letter">${current.letter}</span> !`;
+    if (instrEl) instrEl.innerHTML = `Trouve toutes les <span class="target-letter">${current.letter}</span> !`;
 
-    speakNow(`Trouve la lettre ${current.letter} !`);
-    
-    // Petit son joyeux ('Boop') pour l'arrivée des astéroïdes
+    speakNow(`Trouve toutes les lettres ${current.letter} !`);
     setTimeout(playHappyBoop, 400);
-    
+
     const container = document.getElementById('asteroid-container');
     container.innerHTML = '';
-    
-    // Préparer les lettres (bonne + deux mauvaises tirées au sort)
-    let others = config.allLetters.filter(l => l !== current.letter).sort(() => Math.random() - 0.5).slice(0, 2);
-    let lettersToShow = [current.letter, ...others];
-    // Mélanger
-    lettersToShow.sort(() => Math.random() - 0.5);
-    
-    lettersToShow.forEach(l => {
-        const ast = document.createElement('div');
-        ast.className = 'asteroid';
-        ast.innerText = l;
-        
-        ast.addEventListener('click', () => {
-            if (l === current.letter) {
-                // VICTOIRE
-                ast.classList.add('correct');
+
+    // Compteur affiché
+    let remaining = TARGET_COUNT;
+    const counterEl = document.createElement('div');
+    counterEl.id = 'phase2-counter';
+    counterEl.innerText = `⭐ ${remaining} à trouver`;
+    // Insérer le compteur AVANT le container dans le screen
+    const screen2 = document.getElementById('screen-phase2');
+    const existingCounter = document.getElementById('phase2-counter');
+    if (existingCounter) existingCounter.remove();
+    screen2.insertBefore(counterEl, container);
+
+    // Construire le tableau de lettres
+    const others = config.allLetters
+        .filter(l => l !== current.letter)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, TOTAL_ASTEROIDS - TARGET_COUNT);
+    const letters = [
+        ...Array(TARGET_COUNT).fill(current.letter),
+        ...others
+    ].sort(() => Math.random() - 0.5);
+
+    // Dimensions du conteneur (approx viewport)
+    const W = window.innerWidth;
+    const H = window.innerHeight * 0.55;
+
+    // Créer les astéroïdes avec position et vitesse aléatoires
+    const asteroids = letters.map(letter => {
+        const el = document.createElement('div');
+        el.className = 'asteroid';
+        el.innerText = letter;
+        el.style.width  = ASTEROID_SIZE + 'px';
+        el.style.height = ASTEROID_SIZE + 'px';
+
+        const x  = Math.random() * (W - ASTEROID_SIZE);
+        const y  = Math.random() * (H - ASTEROID_SIZE);
+        const speed = 1.2 + Math.random() * 1.8;
+        const angle = Math.random() * Math.PI * 2;
+        const state = {
+            el, letter,
+            x, y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            hit: false
+        };
+
+        el.style.left = x + 'px';
+        el.style.top  = y + 'px';
+
+        el.addEventListener('pointerdown', () => {
+            if (state.hit) return;
+            if (letter === current.letter) {
+                state.hit = true;
+                remaining--;
+                el.classList.add('correct');
                 playSuccessSound();
-                speak(`Bravo Sacha, c'est le ${current.letter} !`, () => {
-                   startPhase3(); 
-                });
+                // Disparition après animation
+                setTimeout(() => { el.style.display = 'none'; }, 500);
+
+                if (remaining === 0) {
+                    phase2Running = false;
+                    counterEl.innerText = '🎉 Toutes trouvées !';
+                    speakNow(`Bravo Sacha ! Tu as trouvé toutes les ${current.letter} !`, () => {
+                        startPhase3();
+                    });
+                } else {
+                    counterEl.innerText = `⭐ ${remaining} à trouver`;
+                    speak(`Bravo ! Encore ${remaining} !`);
+                }
             } else {
-                // ERREUR POSITIVE
-                ast.classList.add('wrong');
+                el.classList.add('wrong');
                 playErrorSound();
-                speak(`Presque ! Cherche la lettre qui monte en pointe.`);
+                speak(`Ce n'est pas un ${current.letter}, continue !`);
+                setTimeout(() => el.classList.remove('wrong'), 900);
             }
         });
-        
-        container.appendChild(ast);
+
+        container.appendChild(el);
+        return state;
     });
+
+    // Boucle d'animation (déplacements + rebonds)
+    phase2Running = true;
+    function animLoop() {
+        if (!phase2Running) return;
+        asteroids.forEach(a => {
+            if (a.hit) return;
+            a.x += a.vx;
+            a.y += a.vy;
+            if (a.x < 0)              { a.x = 0;              a.vx =  Math.abs(a.vx); }
+            if (a.x > W - ASTEROID_SIZE) { a.x = W - ASTEROID_SIZE; a.vx = -Math.abs(a.vx); }
+            if (a.y < 0)              { a.y = 0;              a.vy =  Math.abs(a.vy); }
+            if (a.y > H - ASTEROID_SIZE) { a.y = H - ASTEROID_SIZE; a.vy = -Math.abs(a.vy); }
+            a.el.style.left = a.x + 'px';
+            a.el.style.top  = a.y + 'px';
+        });
+        requestAnimationFrame(animLoop);
+    }
+    animLoop();
 }
 
 // ==========================================
@@ -421,6 +493,7 @@ let checkpoints = [];
 let bgImageData = null;
 
 function startPhase3() {
+    phase2Running = false; // stoppe l'animation des astéroïdes
     const current = levelData[currentLevel];
     showScreen('phase3');
     speakNow(`Maintenant, trace la lettre avec ton doigt ou la souris !`);
