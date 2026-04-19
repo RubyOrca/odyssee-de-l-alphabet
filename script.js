@@ -367,6 +367,11 @@ btnNextPhase1.addEventListener('click', () => {
 function startPhase2() {
     const current = levelData[currentLevel];
     showScreen('phase2');
+
+    // Mettre à jour le texte affiché avec la lettre courante
+    const instrEl = document.getElementById('instruction-phase2');
+    if (instrEl) instrEl.innerHTML = `Trouve la lettre <span class="target-letter">${current.letter}</span> !`;
+
     speakNow(`Trouve la lettre ${current.letter} !`);
     
     // Petit son joyeux ('Boop') pour l'arrivée des astéroïdes
