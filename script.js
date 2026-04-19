@@ -232,25 +232,55 @@ function playErrorSound() {
     playOopsSound();
 }
 
-// Synthèse vocale de la Maman / Tata IA
+// --- GESTION DE LA PAROLE ---
+// File d'attente interne : évite les répétitions et les chevauchements
+const speechQueue = [];
+let isSpeaking = false;
+
 function speak(text, callback) {
-    if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'fr-FR';
-        utterance.rate = 0.9; // Plus lent pour un enfant
-        utterance.pitch = 1.2; // Voix un peu plus aiguë/douce
-
-        if (config.frenchVoice) {
-            utterance.voice = config.frenchVoice;
-        }
-
-        if (callback) {
-            utterance.onend = callback;
-        }
-        speechSynthesis.speak(utterance);
-    } else {
-        if(callback) callback();
+    if (!('speechSynthesis' in window)) {
+        if (callback) callback();
+        return;
     }
+    speechQueue.push({ text, callback });
+    if (!isSpeaking) processQueue();
+}
+
+function speakNow(text, callback) {
+    // Interrompt tout et parle immédiatement (pour les feedbacks urgents)
+    speechQueue.length = 0;
+    isSpeaking = false;
+    speechSynthesis.cancel();
+    setTimeout(() => {
+        speechQueue.push({ text, callback });
+        processQueue();
+    }, 80);
+}
+
+function processQueue() {
+    if (speechQueue.length === 0) { isSpeaking = false; return; }
+    isSpeaking = true;
+    const { text, callback } = speechQueue.shift();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'fr-FR';
+    utterance.rate = 0.9;
+    utterance.pitch = 1.2;
+    if (config.frenchVoice) utterance.voice = config.frenchVoice;
+
+    utterance.onend = () => {
+        isSpeaking = false;
+        if (callback) callback();
+        // Enchaîne le suivant seulement si le callback n'a pas déjà ajouté à la queue
+        if (speechQueue.length > 0) processQueue();
+    };
+
+    utterance.onerror = () => {
+        isSpeaking = false;
+        if (speechQueue.length > 0) processQueue();
+    };
+
+    speechSynthesis.speak(utterance);
 }
 
 // Récupérer une bonne voix FR au chargement
@@ -314,11 +344,12 @@ function startPhase1() {
 
 function playPhase1Audio() {
     const current = levelData[currentLevel];
-    playSoftSound(500, 'sine', 0.2); // Petit bip d'attention
-    speak(`Voici la lettre ${current.letter}. ${current.letter}... comme ${current.word} !`, () => {
+    playSoftSound(500, 'sine', 0.2);
+    // speakNow interrompt tout et démarre proprement
+    speakNow(`Voici la lettre ${current.letter}. ${current.letter}... comme ${current.word} !`, () => {
         setTimeout(() => {
             speak(`À toi Sacha, répète après moi... ${current.letter} !`, () => {
-                btnNextPhase1.classList.remove('hidden'); // Afficher le bouton suivant après l'audio
+                btnNextPhase1.classList.remove('hidden');
             });
         }, 800);
     });
@@ -336,7 +367,7 @@ btnNextPhase1.addEventListener('click', () => {
 function startPhase2() {
     const current = levelData[currentLevel];
     showScreen('phase2');
-    speak(`Trouve la lettre ${current.letter} !`);
+    speakNow(`Trouve la lettre ${current.letter} !`);
     
     // Petit son joyeux ('Boop') pour l'arrivée des astéroïdes
     setTimeout(playHappyBoop, 400);
@@ -387,7 +418,7 @@ let bgImageData = null;
 function startPhase3() {
     const current = levelData[currentLevel];
     showScreen('phase3');
-    speak(`Maintenant, trace la lettre avec ton doigt ou la souris !`);
+    speakNow(`Maintenant, trace la lettre avec ton doigt ou la souris !`);
 
     canvas = document.getElementById('drawing-canvas');
     ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -606,7 +637,7 @@ btnFinishPhase3.addEventListener('click', () => {
 function startReward() {
     showScreen('reward');
     addStar();
-    speak("Génial Sacha ! Mission spatiale réussie. Voici une étoile pour toi !");
+    speakNow("Génial Sacha ! Mission spatiale réussie. Voici une étoile pour toi !");
     spawnConfetti();
 }
 
