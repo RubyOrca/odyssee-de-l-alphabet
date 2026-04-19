@@ -318,6 +318,13 @@ button:active {
 }
 
 /* --- PHASE 3 --- */
+.phase3-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-top: 16px;
+}
+
 .canvas-container {
     background: rgba(0,0,0,0.4);
     border: 2px dashed #4fc3f7;

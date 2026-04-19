@@ -524,9 +524,13 @@ function startPhase2() {
 // ==========================================
 let canvas, ctx;
 let isDrawing = false;
-let checkpoints = [];
-// Couche de fond (lettre fantôme + guide) — redessinée à chaque frame pour rester sous le tracé
+let checkpoints = [];       // { x, y, hit, strokeIdx, pointIdx }
+let totalDrawLength = 0;    // longueur cumulée du tracé de l'enfant
 let bgImageData = null;
+
+// Longueur minimale à dessiner avant qu'une victoire soit possible
+// (évite qu'un seul petit gribouilli valide tout)
+const MIN_DRAW_LENGTH = 120;
 
 function startPhase3() {
     phase2Running = false; // stoppe l'animation des astéroïdes
@@ -546,8 +550,14 @@ function startPhase3() {
     // 2. Guide pointillé doré par-dessus
     drawGuide(current.strokes);
 
-    // 3. Aplatir les strokes en checkpoints
-    checkpoints = current.strokes.flat().map(cp => ({ ...cp, hit: false }));
+    // 3. Construire les checkpoints avec leur position dans le tracé (strokeIdx, pointIdx)
+    checkpoints = [];
+    current.strokes.forEach((stroke, si) => {
+        stroke.forEach((pt, pi) => {
+            checkpoints.push({ x: pt.x, y: pt.y, hit: false, strokeIdx: si, pointIdx: pi });
+        });
+    });
+    totalDrawLength = 0;
 
     // 4. Cercles dorés sur les points-clés
     drawCheckpoints();
@@ -697,6 +707,9 @@ function setupCanvasEvents() {
         ctx.stroke();
         ctx.shadowBlur = 0;
 
+        // Accumuler la longueur du tracé
+        totalDrawLength += Math.hypot(pos.x - lastPos.x, pos.y - lastPos.y);
+
         // Mettre à jour le fond pour inclure ce trait (accumuler)
         bgImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
@@ -721,20 +734,37 @@ function setupCanvasEvents() {
 }
 
 function checkHit(x, y) {
-    let hits = 0;
+    let newHit = false;
+
     checkpoints.forEach(cp => {
-        const dist = Math.hypot(cp.x - x, cp.y - y);
-        // Rayon généreux pour les petits doigts
-        if (dist < 45 && !cp.hit) {
-            cp.hit = true;
-            playSoftSound(700 + hits * 80, 'sine', 0.12);
-            // Effacer le cercle validé (remettre le fond à jour)
-            bgImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        if (cp.hit) return;
+
+        // Ordre séquentiel : le point précédent du même trait doit déjà être validé
+        if (cp.pointIdx > 0) {
+            const prev = checkpoints.find(
+                c => c.strokeIdx === cp.strokeIdx && c.pointIdx === cp.pointIdx - 1
+            );
+            if (prev && !prev.hit) return;
         }
-        if (cp.hit) hits++;
+
+        const dist = Math.hypot(cp.x - x, cp.y - y);
+        if (dist < 30) {   // rayon réduit : 30 px
+            cp.hit = true;
+            newHit = true;
+            const hitsCount = checkpoints.filter(c => c.hit).length;
+            playSoftSound(650 + hitsCount * 60, 'sine', 0.12);
+        }
     });
 
-    if (hits === checkpoints.length && btnFinishPhase3.classList.contains('hidden')) {
+    // Mettre à jour le fond seulement quand un nouveau point est validé
+    if (newHit) {
+        bgImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    }
+
+    const allHit = checkpoints.every(cp => cp.hit);
+
+    // Victoire uniquement si tous les points sont validés ET que l'enfant a vraiment dessiné
+    if (allHit && totalDrawLength >= MIN_DRAW_LENGTH && btnFinishPhase3.classList.contains('hidden')) {
         const current = currentLevelData();
         btnFinishPhase3.classList.remove('hidden');
         speak(`Magnifique ! Tu as tracé la lettre ${current.letter} !`);
@@ -743,6 +773,11 @@ function checkHit(x, y) {
 
 btnFinishPhase3.addEventListener('click', () => {
     startReward();
+});
+
+document.getElementById('btn-retry').addEventListener('click', () => {
+    speak('Réessaie !');
+    startPhase3();
 });
 
 // ==========================================
