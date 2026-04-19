@@ -175,6 +175,30 @@ h1 {
     font-size: 2.5rem;
 }
 
+/* --- ORDER TOGGLE (écran d'accueil) --- */
+.order-toggle {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.btn-order {
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-dim);
+    font-size: 1rem;
+    padding: 10px 18px;
+    border-radius: 50px;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.btn-order.active {
+    background: rgba(0, 188, 212, 0.25);
+    border-color: var(--acc-secondary);
+    color: #fff;
+}
+
 /* --- BUTTONS --- */
 button {
     font-family: inherit;

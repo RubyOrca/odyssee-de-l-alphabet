@@ -126,10 +126,28 @@ const levelData = [
 
 const config = {
     frenchVoice: null,
-    allLetters: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+    allLetters: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+    randomOrder: false,   // false = alphabétique, true = aléatoire
+    levelOrder: []        // ordre effectif des indices de levelData
 };
 
-let currentLevel = 0;
+let currentLevel = 0; // index dans config.levelOrder
+
+function buildLevelOrder() {
+    const indices = levelData.map((_, i) => i);
+    if (config.randomOrder) {
+        // Mélange Fisher-Yates
+        for (let i = indices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+    }
+    config.levelOrder = indices;
+}
+
+function currentLevelData() {
+    return levelData[config.levelOrder[currentLevel]];
+}
 
 let starsAmount = 0;
 let audioCtx = null;
@@ -313,9 +331,27 @@ function addStar() {
     playSuccessSound();
 }
 
+// --- TOGGLE ORDRE ---
+const btnOrderAlpha  = document.getElementById('btn-order-alpha');
+const btnOrderRandom = document.getElementById('btn-order-random');
+
+btnOrderAlpha.addEventListener('click', () => {
+    config.randomOrder = false;
+    btnOrderAlpha.classList.add('active');
+    btnOrderRandom.classList.remove('active');
+});
+
+btnOrderRandom.addEventListener('click', () => {
+    config.randomOrder = true;
+    btnOrderRandom.classList.add('active');
+    btnOrderAlpha.classList.remove('active');
+});
+
 // --- INIT APP ---
 btnStart.addEventListener('click', () => {
     initAudio();
+    currentLevel = 0;
+    buildLevelOrder();
     speak("Prêt pour l'aventure Sacha ? C'est parti !");
     startPhase1();
 });
@@ -332,7 +368,7 @@ function startPhase1() {
     showScreen('phase1');
     btnNextPhase1.classList.add('hidden');
     
-    const current = levelData[currentLevel];
+    const current = currentLevelData();
     document.getElementById('discover-letter').innerText = current.letter;
     document.getElementById('discover-icon').innerText = current.icon;
     
@@ -343,7 +379,7 @@ function startPhase1() {
 }
 
 function playPhase1Audio() {
-    const current = levelData[currentLevel];
+    const current = currentLevelData();
     playSoftSound(500, 'sine', 0.2);
     // speakNow interrompt tout et démarre proprement
     speakNow(`Voici la lettre ${current.letter}. ${current.letter}... comme ${current.word} !`, () => {
@@ -370,7 +406,7 @@ const TOTAL_ASTEROIDS = 10;
 const TARGET_COUNT = 3; // nb d'occurrences de la bonne lettre
 
 function startPhase2() {
-    const current = levelData[currentLevel];
+    const current = currentLevelData();
     showScreen('phase2');
 
     // Instruction
@@ -494,7 +530,7 @@ let bgImageData = null;
 
 function startPhase3() {
     phase2Running = false; // stoppe l'animation des astéroïdes
-    const current = levelData[currentLevel];
+    const current = currentLevelData();
     showScreen('phase3');
     speakNow(`Maintenant, trace la lettre avec ton doigt ou la souris !`);
 
@@ -699,7 +735,7 @@ function checkHit(x, y) {
     });
 
     if (hits === checkpoints.length && btnFinishPhase3.classList.contains('hidden')) {
-        const current = levelData[currentLevel];
+        const current = currentLevelData();
         btnFinishPhase3.classList.remove('hidden');
         speak(`Magnifique ! Tu as tracé la lettre ${current.letter} !`);
     }
@@ -721,9 +757,10 @@ function startReward() {
 
 btnReplay.addEventListener('click', () => {
     currentLevel++;
-    if(currentLevel >= levelData.length) {
+    if (currentLevel >= config.levelOrder.length) {
         currentLevel = 0;
-        speak("Bravo Sacha ! Tu as appris toutes les lettres de l'alphabet ! On recommence l'aventure !");
+        buildLevelOrder(); // Reconstruire l'ordre (re-mélanger si aléatoire)
+        speakNow("Bravo Sacha ! Tu as appris toutes les lettres de l'alphabet ! On recommence l'aventure !");
     } else {
         speak("Super ! On passe à la lettre suivante !");
     }
