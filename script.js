@@ -394,27 +394,46 @@ function startPhase3() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 1. Lettre fantôme semi-transparente
-    ctx.font = '300px Nunito';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(current.letter, canvas.width / 2, canvas.height / 2 + 20);
+    // 1. Lettre fantôme = les strokes dessinés en épais et semi-transparent
+    //    → garantit un alignement parfait avec le guide
+    drawLetterGhost(current.strokes);
 
-    // 2. Guide pointillé le long des tracés
+    // 2. Guide pointillé doré par-dessus
     drawGuide(current.strokes);
 
-    // 3. Aplatir les strokes en checkpoints (tous les points de chaque tracé)
+    // 3. Aplatir les strokes en checkpoints
     checkpoints = current.strokes.flat().map(cp => ({ ...cp, hit: false }));
 
     // 4. Cercles dorés sur les points-clés
     drawCheckpoints();
 
-    // Mémoriser le fond (lettre + guide + cercles) pour le restituer à chaque trait
+    // Mémoriser le fond pour le restituer à chaque trait
     bgImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
     btnFinishPhase3.classList.add('hidden');
     setupCanvasEvents();
+}
+
+// Dessine les strokes en gros trait blanc semi-transparent → la "lettre fantôme"
+function drawLetterGhost(strokes) {
+    strokes.forEach(stroke => {
+        if (stroke.length < 1) return;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 55;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        stroke.forEach((pt, i) => {
+            i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y);
+        });
+        ctx.stroke();
+        // Contour intérieur légèrement plus visible
+        ctx.strokeStyle = 'rgba(200, 220, 255, 0.12)';
+        ctx.lineWidth = 30;
+        ctx.stroke();
+        ctx.restore();
+    });
 }
 
 // Dessine les lignes pointillées qui montrent le chemin à suivre
