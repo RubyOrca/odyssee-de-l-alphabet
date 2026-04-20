@@ -176,6 +176,47 @@ h1 {
 }
 
 /* --- ORDER TOGGLE (écran d'accueil) --- */
+/* --- ÉTOILES DE DÉPART --- */
+.stars-start-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.stars-start-label {
+    color: #ffd700;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+#start-star-count {
+    color: #ffd700;
+    font-size: 1.8rem;
+    font-weight: 900;
+    min-width: 2ch;
+    text-align: center;
+}
+
+.btn-stars-adj {
+    background: rgba(255, 215, 0, 0.15);
+    border: 2px solid rgba(255, 215, 0, 0.4);
+    color: #ffd700;
+    font-size: 1.4rem;
+    font-weight: 900;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-stars-adj:hover {
+    background: rgba(255, 215, 0, 0.3);
+}
+
+/* --- TOGGLE ORDRE --- */
 .order-toggle {
     display: flex;
     gap: 12px;

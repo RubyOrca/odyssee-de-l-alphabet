@@ -150,6 +150,7 @@ function currentLevelData() {
 }
 
 let starsAmount = 0;
+let startStars = 0;
 let audioCtx = null;
 
 // --- DOM ELEMENTS ---
@@ -331,6 +332,20 @@ function addStar() {
     playSuccessSound();
 }
 
+// --- ÉTOILES DE DÉPART ---
+const startStarCountEl = document.getElementById('start-star-count');
+const btnStarsMinus    = document.getElementById('btn-stars-minus');
+const btnStarsPlus     = document.getElementById('btn-stars-plus');
+
+btnStarsPlus.addEventListener('click', () => {
+    startStars = Math.min(startStars + 1, 26);
+    startStarCountEl.innerText = startStars;
+});
+btnStarsMinus.addEventListener('click', () => {
+    startStars = Math.max(startStars - 1, 0);
+    startStarCountEl.innerText = startStars;
+});
+
 // --- TOGGLE ORDRE ---
 const btnOrderAlpha  = document.getElementById('btn-order-alpha');
 const btnOrderRandom = document.getElementById('btn-order-random');
@@ -352,6 +367,8 @@ btnStart.addEventListener('click', () => {
     initAudio();
     currentLevel = 0;
     buildLevelOrder();
+    starsAmount = startStars;
+    starCountEl.innerText = starsAmount;
     speak("Prêt pour l'aventure Sacha ? C'est parti !");
     startPhase1();
 });
