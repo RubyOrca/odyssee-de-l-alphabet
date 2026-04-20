@@ -739,16 +739,8 @@ function checkHit(x, y) {
     checkpoints.forEach(cp => {
         if (cp.hit) return;
 
-        // Ordre séquentiel : le point précédent du même trait doit déjà être validé
-        if (cp.pointIdx > 0) {
-            const prev = checkpoints.find(
-                c => c.strokeIdx === cp.strokeIdx && c.pointIdx === cp.pointIdx - 1
-            );
-            if (prev && !prev.hit) return;
-        }
-
         const dist = Math.hypot(cp.x - x, cp.y - y);
-        if (dist < 30) {   // rayon réduit : 30 px
+        if (dist < 55) {   // rayon permissif : 55 px
             cp.hit = true;
             newHit = true;
             const hitsCount = checkpoints.filter(c => c.hit).length;
