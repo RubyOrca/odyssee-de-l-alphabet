@@ -740,7 +740,7 @@ function checkHit(x, y) {
         if (cp.hit) return;
 
         const dist = Math.hypot(cp.x - x, cp.y - y);
-        if (dist < 55) {   // rayon permissif : 55 px
+        if (dist < 35) {   // rayon : 35 px
             cp.hit = true;
             newHit = true;
             const hitsCount = checkpoints.filter(c => c.hit).length;
