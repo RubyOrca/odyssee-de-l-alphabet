@@ -382,7 +382,7 @@ function playPhase1Audio() {
     const current = currentLevelData();
     playSoftSound(500, 'sine', 0.2);
     // speakNow interrompt tout et démarre proprement
-    speakNow(`Voici la lettre ${current.letter}. ${current.letter}... comme ${current.word} !`, () => {
+    speakNow(`Voici la lettre ${current.letter}, comme ${current.word} !`, () => {
         setTimeout(() => {
             speak(`À toi Sacha, répète après moi... ${current.letter} !`, () => {
                 btnNextPhase1.classList.remove('hidden');
