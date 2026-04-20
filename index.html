@@ -32,10 +32,8 @@
                     <button id="btn-order-random" class="btn-order">🎲 Aléatoire</button>
                 </div>
                 <div class="stars-start-row">
-                    <label class="stars-start-label">⭐ Commencer avec</label>
-                    <button class="btn-stars-adj" id="btn-stars-minus">−</button>
-                    <span id="start-star-count">0</span>
-                    <button class="btn-stars-adj" id="btn-stars-plus">+</button>
+                    <label class="stars-start-label" for="input-start-stars">⭐ Commencer avec</label>
+                    <input type="number" id="input-start-stars" class="stars-start-input" value="0" min="0" max="99">
                     <span class="stars-start-label">étoiles</span>
                 </div>
                 <button id="btn-start" class="btn-primary">Commencer le voyage</button>

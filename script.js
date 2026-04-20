@@ -333,18 +333,7 @@ function addStar() {
 }
 
 // --- ÉTOILES DE DÉPART ---
-const startStarCountEl = document.getElementById('start-star-count');
-const btnStarsMinus    = document.getElementById('btn-stars-minus');
-const btnStarsPlus     = document.getElementById('btn-stars-plus');
-
-btnStarsPlus.addEventListener('click', () => {
-    startStars = Math.min(startStars + 1, 26);
-    startStarCountEl.innerText = startStars;
-});
-btnStarsMinus.addEventListener('click', () => {
-    startStars = Math.max(startStars - 1, 0);
-    startStarCountEl.innerText = startStars;
-});
+const inputStartStars = document.getElementById('input-start-stars');
 
 // --- TOGGLE ORDRE ---
 const btnOrderAlpha  = document.getElementById('btn-order-alpha');
@@ -367,7 +356,7 @@ btnStart.addEventListener('click', () => {
     initAudio();
     currentLevel = 0;
     buildLevelOrder();
-    starsAmount = startStars;
+    starsAmount = Math.max(0, parseInt(inputStartStars.value) || 0);
     starCountEl.innerText = starsAmount;
     speak("Prêt pour l'aventure Sacha ? C'est parti !");
     startPhase1();
